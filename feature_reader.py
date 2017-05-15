@@ -43,6 +43,8 @@ class FeatureReader(object):
         X_category = self.X[self.category_names]
         ncol_numeric = X_numeric.shape[1]
         ncol_category = self.X.shape[1] - ncol_numeric
+        if ncol_category != len(self.category_names):
+            raise ValueError("Length of 'X_category' and 'ncol_category' are not consistent.")
         index_numeric = ['kurtosis', 'skewness', 'mean', 'std', 'min', 'max',
                          'median', 'first_quartile', 'third_quartile']
         colnames_numeric = ['var'+str(n) for n in np.arange(1, ncol_numeric+1)]
@@ -72,8 +74,12 @@ class FeatureReader(object):
         return self.features_info
 
     def _append(self, features_info):
-        with open('metabase', 'rb') as fp:
-            itemlist = pickle.load(fp)
+        try:
+            with open('metabase', 'rb') as fp:
+                itemlist = pickle.load(fp)
+        except Exception as e:
+            print(e, 'in reading')
+            itemlist = []
 
         itemlist.append(features_info)
 
