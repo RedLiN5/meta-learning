@@ -1,14 +1,15 @@
 
 import pandas as pd
 import numpy as np
+import pickle
 from scipy import stats
 
 
 class FeatureReader(object):
 
-    def __init__(self, X, y, numeric_names, category_names, industry, business_func):
+    def __init__(self, X, y, numeric_names,
+                 category_names, industry, business_func):
         """
-
         Args:
             X: pandas.DataFrame
                 Predictors
@@ -30,7 +31,7 @@ class FeatureReader(object):
         industry = get_industry(industry=industry)
         business_func = get_business_func(business_func)
         self.features_info = dict(Industry=industry,
-                                  Business_function=business_func)
+                                  Business_Function=business_func)
 
     def _extract_info(self):
         """
@@ -41,9 +42,12 @@ class FeatureReader(object):
         X_numeric = self.X[self.numeric_names]
         X_category = self.X[self.category_names]
         ncol_numeric = X_numeric.shape[1]
+        ncol_category = self.X.shape[1] - ncol_numeric
         index_numeric = ['kurtosis', 'skewness', 'mean', 'std', 'min', 'max',
                          'median', 'first_quartile', 'third_quartile']
-        colnames = ['var'+str(n) for n in np.arange(1, ncol_numeric+1)]
+        colnames_numeric = ['var'+str(n) for n in np.arange(1, ncol_numeric+1)]
+        colnames_category = ['var'+str(n) for n in np.arange(1, ncol_category+1)]
+
         kurtosis = X_numeric.apply(stats.kurtosis).values
         skewness = X_numeric.apply(stats.skew).values
         mean = X_numeric.apply(np.mean).values
@@ -53,12 +57,33 @@ class FeatureReader(object):
         median = X_numeric.apply(np.median).values
         first_quartile = X_numeric.apply(lambda x: np.percentile(x, 25)).values
         third_quartile = X_numeric.apply(lambda x: np.percentile(x, 75)).values
-        data = np.array([kurtosis, skewness, mean, std, min, max, median, first_quartile, third_quartile])
-        info_numeric = pd.DataFrame(data=data,
+        data_numeric = np.array([kurtosis, skewness, mean, std, min, max, median, first_quartile, third_quartile])
+
+        info_numeric = pd.DataFrame(data=data_numeric,
                                     index=index_numeric,
-                                    columns=colnames)
+                                    columns=colnames_numeric)
+        info_category = pd.DataFrame(columns=colnames_category)
+        return info_numeric, info_category
 
+    def _encapsule(self):
+        info_numeric, info_category = self._extract_info()
+        self.features_info['Info_Numeric'] = info_numeric
+        self.features_info['Info_Category'] = info_category
+        return self.features_info
 
+    def _append(self, features_info):
+        with open('metabase', 'rb') as fp:
+            itemlist = pickle.load(fp)
+
+        itemlist.append(features_info)
+
+        with open('metabase', 'wb') as fp:
+            pickle.dump(itemlist, fp)
+
+    def run(self):
+        features_info = self._encapsule()
+        self._append(features_info=features_info)
+        return features_info
 
 
 
