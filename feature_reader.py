@@ -7,7 +7,7 @@ from scipy import stats
 
 class FeatureReader(object):
 
-    def __init__(self, X, y, numeric_names,
+    def __init__(self, X, y, id, numeric_names,
                  category_names, industry, business_func):
         """
         Args:
@@ -15,6 +15,8 @@ class FeatureReader(object):
                 Predictors
             y: pandas.Series
                 Response
+            id: string
+                Unique ID
             numeric_names: pandas.indexes.base.Index
                 Column names of numerical columns
             category_names: pandas.indexes.base.Index
@@ -26,6 +28,7 @@ class FeatureReader(object):
         """
         self.X = X
         self.y = y
+        self.id = id
         self.numeric_names = numeric_names
         self.category_names = category_names
         industry = get_industry(industry=industry)
@@ -50,8 +53,10 @@ class FeatureReader(object):
         colnames_numeric = ['var'+str(n) for n in np.arange(1, ncol_numeric+1)]
         colnames_category = ['var'+str(n) for n in np.arange(1, ncol_category+1)]
 
-        kurtosis = X_numeric.apply(stats.kurtosis).values
-        skewness = X_numeric.apply(stats.skew).values
+        kurtosis = X_numeric.apply(lambda x: stats.kurtosis(x,
+                                                            nan_policy='omit')).values
+        skewness = X_numeric.apply(lambda x: stats.skew(x,
+                                                        nan_policy='omit')).values
         mean = X_numeric.apply(np.mean).values
         std = X_numeric.apply(np.std).values
         min = X_numeric.apply(np.min).values
@@ -76,15 +81,15 @@ class FeatureReader(object):
     def _append(self, features_info):
         try:
             with open('metabase', 'rb') as fp:
-                itemlist = pickle.load(fp)
+                itemdict = pickle.load(fp)
         except Exception as e:
             print(e, 'in reading')
-            itemlist = []
+            itemdict = dict()
 
-        itemlist.append(features_info)
+        itemdict[self.id] = features_info
 
         with open('metabase', 'wb') as fp:
-            pickle.dump(itemlist, fp)
+            pickle.dump(itemdict, fp)
 
     def run(self):
         features_info = self._encapsule()
