@@ -16,7 +16,7 @@ def _select_candicate_input_short(series_row, candidates_list):
             break
     return name, value
 
-def _select_candicate_input_short(score_df):
+def _select_candicate_input_long(score_df):
     max_arg = score_df.apply(lambda x: x.argmax())
     count = collections.Counter(max_arg).items()
     dup = [_item for _item, _count in count if _count > 1]
@@ -51,6 +51,14 @@ class DataMatch(object):
         return all_features
 
     def _scoring_numeric(self, features_dict):
+        """
+        Return names and scores of input numerical variables who matches local variables best.
+        Returns:
+            candidates: list
+                Names of best matchers
+            candidate_scores: list
+                Scores of best matchers
+        """
         features_input = self.features_info['Info_Numeric']
         features_base = features_dict['Info_Numeric']
         input_colnames = features_input.columns
@@ -69,7 +77,7 @@ class DataMatch(object):
             _score_table = score_table.copy()
             for _ in range(len(input_colnames)):
                 candidates, colnames, candidate_scores =\
-                    _select_candicate_input_short(score_df=_score_table)
+                    _select_candicate_input_long(score_df=_score_table)
                 _score_table= score_table.drop(colnames, axis=1).drop(candidates, axis=0)
                 if _score_table.shape[0] == 0:
                     break
@@ -85,6 +93,3 @@ class DataMatch(object):
                     candidate_scores.append(value)
 
         return candidates, candidate_scores
-
-
-
