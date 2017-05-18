@@ -2,9 +2,10 @@ from feature_reader import FeatureReader
 import pandas as pd
 import numpy as np
 import pickle
+import collections
 from scipy import stats
 
-def _select_candicate(series_row, candidates_list):
+def _select_candicate_input_short(series_row, candidates_list):
     i = 1
     for _ in range(len(series_row)):
         value = series_row.nlargest(i)[-1]
@@ -14,6 +15,23 @@ def _select_candicate(series_row, candidates_list):
         else:
             break
     return name, value
+
+def _select_candicate_input_short(score_df):
+    max_arg = score_df.apply(lambda x: x.argmax())
+    count = collections.Counter(max_arg).items()
+    dup = [_item for _item, _count in count if _count > 1]
+    uni = [_item for _item, _count in count if _count == 1]
+    col = max_arg.index[~max_arg.duplicated(keep=False)].tolist()
+    max_value = score_df.max().loc[col].tolist()
+    for _row in dup:
+        try:
+            col.append(score_df.loc[_row].argmax())
+            max_value.append(score_df.loc[_row].max())
+        except Exception as e:
+            print(e)
+        uni.append(_row)
+    return uni, col, max_value
+
 
 class DataMatch(object):
 
@@ -46,16 +64,23 @@ class DataMatch(object):
 
         score_table = score_table.apply(pd.to_numeric,
                                         errors = 'ignore')
-        candidates = []
-        candidate_scores =[]
+
         if len(input_colnames) > len(base_colnames):
-            pass
+            _score_table = score_table.copy()
+            for _ in range(len(input_colnames)):
+                candidates, colnames, candidate_scores =\
+                    _select_candicate_input_short(score_df=_score_table)
+                _score_table= score_table.drop(colnames, axis=1).drop(candidates, axis=0)
+                if _score_table.shape[0] == 0:
+                    break
         else:
+            candidates = []
+            candidate_scores = []
             for i in range(len(input_colnames)):
                 if len(candidates) < len(base_colnames):
                     row = score_table.loc[i]
-                    name, value = _select_candicate(series_row=row,
-                                                    candidates_list=candidates)
+                    name, value = _select_candicate_input_short(series_row=row,
+                                                                candidates_list=candidates)
                     candidates.append(name)
                     candidate_scores.append(value)
 
