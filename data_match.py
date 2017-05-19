@@ -93,3 +93,18 @@ class DataMatch(object):
                     candidate_scores.append(value)
 
         return candidates, candidate_scores
+
+    def _calculate_scores(self):
+        all_features = self._load_metabase()
+        ids = []
+        scores = []
+        for key in all_features.keys():
+            feature_dict = all_features[key]
+            _, candidate_scores = self._scoring_numeric(features_dict=feature_dict)
+            ids.append(key)
+            scores.append(np.mean(candidate_scores))
+        return ids, scores
+
+    def run(self, best_match=5):
+        pass
+
