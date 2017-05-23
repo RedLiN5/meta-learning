@@ -82,11 +82,14 @@ class FeatureReader(object):
         try:
             with open('metabase', 'rb') as fp:
                 itemdict = pickle.load(fp)
+                if self.id in itemdict.keys():
+                    print(BaseException("{0} has existed in database.".format(self.id)))
+                else:
+                    itemdict[self.id] = features_info
         except Exception as e:
             print(e, 'in reading')
             itemdict = dict()
-
-        itemdict[self.id] = features_info
+            itemdict[self.id] = features_info
 
         with open('metabase', 'wb') as fp:
             pickle.dump(itemdict, fp)
