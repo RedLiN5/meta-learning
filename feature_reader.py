@@ -2,6 +2,7 @@
 import pandas as pd
 import numpy as np
 import pickle
+import collections
 from scipy import stats
 
 
@@ -48,10 +49,11 @@ class FeatureReader(object):
         ncol_category = self.X.shape[1] - ncol_numeric
         if ncol_category != len(self.category_names):
             raise ValueError("Length of 'X_category' and 'ncol_category' are not consistent.")
+
+        # --*--*-- Numeric process --*--*--
         index_numeric = ['kurtosis', 'skewness', 'mean', 'std', 'min', 'max',
                          'median', 'first_quartile', 'third_quartile']
         colnames_numeric = ['var'+str(n) for n in np.arange(1, ncol_numeric+1)]
-        colnames_category = ['var'+str(n) for n in np.arange(1, ncol_category+1)]
 
         kurtosis = X_numeric.apply(lambda x: stats.kurtosis(x,
                                                             nan_policy='omit')).values
@@ -69,7 +71,18 @@ class FeatureReader(object):
         info_numeric = pd.DataFrame(data=data_numeric,
                                     index=index_numeric,
                                     columns=colnames_numeric)
-        info_category = pd.DataFrame(columns=colnames_category)
+
+        # --*--*-- Category process --*--*--
+        index_category = ['num_category', 'counter']
+        colnames_category = ['var' + str(n) for n in np.arange(1, ncol_category + 1)]
+        num_category = X_category.apply(lambda x: len(np.unique(x))).values
+        counter = X_category.apply(collections.Counter).values
+        data_category = np.array([num_category, counter])
+
+        info_category = pd.DataFrame(data=data_category,
+                                     index=index_category,
+                                     columns=colnames_category)
+
         return info_numeric, info_category
 
     def _encapsule(self):
