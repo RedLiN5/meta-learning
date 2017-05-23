@@ -5,7 +5,7 @@ import pickle
 import collections
 from scipy import stats
 
-def _select_candicate_input_short(series_row, candidates_list):
+def _select_numeric_candicate_short(series_row, candidates_list):
     i = 1
     for _ in range(len(series_row)):
         value = series_row.nlargest(i)[-1]
@@ -16,7 +16,7 @@ def _select_candicate_input_short(series_row, candidates_list):
             break
     return name, value
 
-def _select_candicate_input_long(score_df):
+def _select_numeric_candicate_long(score_df):
     max_arg = score_df.apply(lambda x: x.argmax())
     max_arg.dropna(inplace=True)
     count = collections.Counter(max_arg).items()
@@ -57,7 +57,7 @@ class DataMatch(object):
 
         return all_features
 
-    def _scoring_numeric(self, features_dict):
+    def _scoring_numeric(self, features_base):
         """
         Return names and scores of input numerical variables who matches local variables best.
         Returns:
@@ -67,7 +67,7 @@ class DataMatch(object):
                 Scores of best matchers
         """
         features_input = self.features_info['Info_Numeric']
-        features_base = features_dict['Info_Numeric']
+        features_base = features_base['Info_Numeric']
         input_colnames = features_input.columns
         base_colnames = features_base.columns
         score_table = pd.DataFrame(columns=base_colnames,
@@ -84,7 +84,7 @@ class DataMatch(object):
             _score_table = score_table.copy()
             for _ in range(len(input_colnames)):
                 candidates, colnames, candidate_scores =\
-                    _select_candicate_input_long(score_df=_score_table)
+                    _select_numeric_candicate_long(score_df=_score_table)
                 _score_table= score_table.drop(colnames, axis=1).drop(candidates, axis=0)
                 if _score_table.shape[0] == 0:
                     break
@@ -94,12 +94,29 @@ class DataMatch(object):
             for i in range(len(input_colnames)):
                 if len(candidates) < len(base_colnames):
                     row = score_table.ix[i,:]
-                    name, value = _select_candicate_input_short(series_row=row,
+                    name, value = _select_numeric_candicate_short(series_row=row,
                                                                 candidates_list=candidates)
                     candidates.append(name)
                     candidate_scores.append(value)
 
         return candidates, candidate_scores
+
+    def _scoring_category(self, features_base):
+        """
+        Return names and scores of input categorical variables who matches local variables best.
+        Returns:
+            candidates: list
+                Names of best matchers
+            candidate_scores: list
+                Scores of best matchers
+        """
+        features_input = self.features_info['Info_Category']
+        features_base = features_base['Info_Category']
+        input_colnames = features_input.columns
+        base_colnames = features_base.columns
+        score_table = pd.DataFrame(columns=base_colnames,
+                                   index=input_colnames)
+        # TODO chi_squared test on percentage data
 
     def _calculate_scores(self):
         all_features = self._load_metabase()
@@ -107,7 +124,7 @@ class DataMatch(object):
         scores = []
         for key in all_features.keys():
             feature_dict = all_features[key]
-            _, candidate_scores = self._scoring_numeric(features_dict=feature_dict)
+            _, candidate_scores = self._scoring_numeric(features_base=feature_dict)
             ids.append(key)
             scores.append(np.mean(candidate_scores))
         return ids, scores
