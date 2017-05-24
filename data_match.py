@@ -54,7 +54,7 @@ class DataMatch(object):
         self.business_func = business_func
 
     def _load_metabase(self):
-        with open('metabase', 'rb') as fp:
+        with open('config/metabase', 'rb') as fp:
             all_features = pickle.load(fp)
 
         return all_features

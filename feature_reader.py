@@ -93,7 +93,7 @@ class FeatureReader(object):
 
     def _append(self, features_info):
         try:
-            with open('metabase', 'rb') as fp:
+            with open('config/metabase', 'rb') as fp:
                 itemdict = pickle.load(fp)
                 if self.id in itemdict.keys():
                     print(BaseException("{0} has existed in database.".format(self.id)))
@@ -104,7 +104,7 @@ class FeatureReader(object):
             itemdict = dict()
             itemdict[self.id] = features_info
 
-        with open('metabase', 'wb') as fp:
+        with open('config/metabase', 'wb') as fp:
             pickle.dump(itemdict, fp)
 
     def run(self):
