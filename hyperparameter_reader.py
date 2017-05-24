@@ -13,7 +13,7 @@ class HyperparameterReader(object):
             with open('config/hyperparameter', 'rb') as fp:
                 itemdict = pickle.load(fp)
         except Exception as e:
-            print(e, 'in reading')
+            print(e, 'in reading hyperparameter')
             itemdict = dict()
         return itemdict
 
@@ -24,7 +24,7 @@ class HyperparameterReader(object):
             with open('config/hyperparameter', 'wb') as fp:
                 pickle.dump(itemdict, fp)
         except Exception as e:
-            print(e, 'in saving')
+            print(e, 'in saving hyperparameter')
 
 
     def read_hyperparameter(self, id=None,
@@ -35,7 +35,7 @@ class HyperparameterReader(object):
             hyperparameters = algorithm.get_params()
             self.algorithm_params = {class_name: hyperparameters}
         except Exception as e:
-            print(e)
+            print(e, 'in reading hyperparameter')
 
 
 

@@ -100,7 +100,7 @@ class FeatureReader(object):
                 else:
                     itemdict[self.id] = features_info
         except Exception as e:
-            print(e, 'in reading')
+            print(e, 'in reading metabase')
             itemdict = dict()
             itemdict[self.id] = features_info
 
