@@ -5,8 +5,8 @@ import pickle
 
 class HyperparameterReader(object):
 
-    def __init__(self, id):
-        self.id = id
+    def __init__(self):
+        pass
 
     def _load(self):
         try:
@@ -17,7 +17,9 @@ class HyperparameterReader(object):
             itemdict = dict()
         return itemdict
 
-    def _save(self, itemdict):
+    def save(self):
+        itemdict = self._load()
+        itemdict[self.id] = self.algorithm_params
         try:
             with open('config/hyperparameter', 'wb') as fp:
                 pickle.dump(itemdict, fp)
@@ -25,12 +27,15 @@ class HyperparameterReader(object):
             print(e, 'in saving')
 
 
-    def _read_hyperparameter(self, algorithm=None):
+    def read_hyperparameter(self, id=None,
+                            algorithm=None):
+        self.id = id
         try:
             class_name = algorithm.__class__.__name__
             hyperparameters = algorithm.get_params()
-            algorithm_params = {class_name: hyperparameters}
-
+            self.algorithm_params = {class_name: hyperparameters}
         except Exception as e:
             print(e)
+
+
 
