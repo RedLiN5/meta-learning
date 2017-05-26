@@ -1,4 +1,4 @@
-from feature_reader import FeatureReader
+from feature_reader import *
 import pandas as pd
 import numpy as np
 import pickle
@@ -50,8 +50,8 @@ class DataMatch(object):
                            industry=industry,
                            business_func=business_func)
         self.features_info = fr.run()
-        self.industry = industry
-        self.business_func = business_func
+        self.industry = get_industry(industry)
+        self.business_func = get_business_func(business_func)
 
     def _load_metabase(self):
         with open('config/metabase', 'rb') as fp:

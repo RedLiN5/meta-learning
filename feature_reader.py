@@ -96,7 +96,7 @@ class FeatureReader(object):
             with open('config/metabase', 'rb') as fp:
                 itemdict = pickle.load(fp)
                 if self.id in itemdict.keys():
-                    print(BaseException("{0} has existed in database.".format(self.id)))
+                    print(BaseException("WARNING: ID \'{0}\' has existed in database.".format(self.id)))
                 else:
                     itemdict[self.id] = features_info
         except Exception as e:
