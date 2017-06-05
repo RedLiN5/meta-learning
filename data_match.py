@@ -132,7 +132,20 @@ class DataMatch(object):
                     sample_base.append(counter_base[key])
                 pvalue = stats.chisquare(sample_input, sample_base)[1]
                 score_table.ix[var_input, var_base] = pvalue
-        # TODO chi_squared test on percentage data
+
+        _score_table = score_table.copy()
+
+        if len(input_colnames) > len(base_colnames):
+            for _ in range(len(input_colnames)):
+                candidates, colnames, candidate_scores = \
+                    _select_candicate_long(score_df=_score_table)
+                _score_table = score_table.drop(colnames, axis=1).drop(candidates, axis=0)
+                if _score_table.shape[0] == 0:
+                    break
+        else:
+            candidates, candidate_scores = _select_candicate_short(score_df=_score_table)
+
+        return candidates, candidate_scores
 
     def _calculate_scores(self):
         all_features = self._load_metabase()
