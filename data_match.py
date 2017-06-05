@@ -118,6 +118,20 @@ class DataMatch(object):
         base_colnames = features_base.columns
         score_table = pd.DataFrame(columns=base_colnames,
                                    index=input_colnames)
+        for var_input in input_colnames:
+            for var_base in base_colnames:
+                counter_input = features_input.ix['counter', var_input]
+                counter_base = features_base.ix['counter', var_base]
+                keys_input = counter_input.keys()
+                keys_base = counter_base.keys()
+                intersect = set(keys_base).intersection(set(keys_input))
+                sample_input = []
+                sample_base = []
+                for key in intersect:
+                    sample_input.append(counter_input[key])
+                    sample_base.append(counter_base[key])
+                pvalue = stats.chisquare(sample_input, sample_base)[1]
+                score_table.ix[var_input, var_base] = pvalue
         # TODO chi_squared test on percentage data
 
     def _calculate_scores(self):
@@ -126,7 +140,6 @@ class DataMatch(object):
         for key in all_features.keys():
             if all_features[key]['Industry'] == self.industry:
                 filter_keys.append(key)
-
         ids = []
         scores = []
         for key in filter_keys:
