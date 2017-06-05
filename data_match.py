@@ -90,6 +90,7 @@ class DataMatch(object):
         score_table = score_table.apply(pd.to_numeric,
                                         errors = 'ignore')
         _score_table = score_table.copy()
+        print(_score_table)
 
         if len(input_colnames) > len(base_colnames):
             for _ in range(len(input_colnames)):
@@ -157,9 +158,10 @@ class DataMatch(object):
         scores = []
         for key in filter_keys:
             feature_dict = all_features[key]
-            _, candidate_scores = self._scoring_numeric(features_base=feature_dict)
+            _, candidate_scores_numeric = self._scoring_numeric(features_base=feature_dict)
+            _, candidate_scores_category = self._scoring_category(features_base=feature_dict)
             ids.append(key)
-            scores.append(np.mean(candidate_scores))
+            scores.append(np.mean(candidate_scores_numeric+candidate_scores_category))
             
         return ids, scores
 
