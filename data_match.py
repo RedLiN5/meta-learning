@@ -90,7 +90,6 @@ class DataMatch(object):
         score_table = score_table.apply(pd.to_numeric,
                                         errors = 'ignore')
         _score_table = score_table.copy()
-        print(_score_table)
 
         if len(input_colnames) > len(base_colnames):
             for _ in range(len(input_colnames)):
