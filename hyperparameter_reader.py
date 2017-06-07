@@ -30,7 +30,16 @@ class HyperparameterReader(object):
 
 
     def save_new_hyperparameter(self, id=None,
-                            algorithm=None):
+                                algorithm=None):
+        """
+        Save an algorithm and its hyperparameters
+        Args:
+            id: project ID
+            algorithm: object
+
+        Returns:
+
+        """
         self.id = id
         try:
             algorithm_name = algorithm.__class__.__name__
