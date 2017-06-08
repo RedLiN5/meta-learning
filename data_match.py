@@ -1,4 +1,5 @@
 from feature_reader import *
+from hyperparameter_reader import HyperparameterReader
 import pandas as pd
 import numpy as np
 import pickle
@@ -168,9 +169,12 @@ class DataMatch(object):
 
     def run(self, best_match=5):
         ids, scores = self._calculate_scores()
+        hp_reader = HyperparameterReader()
         sorted_scores = sorted(((v, k) for (k, v) in enumerate(scores)),
                                reverse=True)
         index = list(map(lambda x: x[1], sorted_scores[:best_match]))
         ids_best = np.array(ids)[index]
-        print('End:', ids_best)
+        for id in ids_best:
+            algorithm = hp_reader.read_return(id=id)
+            print('ID:', id, '\n', algorithm)
 
