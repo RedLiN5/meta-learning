@@ -7,6 +7,7 @@ from scipy import stats
 
 
 def _select_candicate_short(score_df):
+    score_df = score_df.astype(float)
     candidates = []
     candidate_scores = []
     input_colnames = score_df.index
@@ -25,6 +26,7 @@ def _select_candicate_short(score_df):
     return candidates, candidate_scores
 
 def _select_candicate_long(score_df):
+    score_df = score_df.astype(float)
     max_arg = score_df.apply(lambda x: x.argmax())
     max_arg.dropna(inplace=True)
     count = collections.Counter(max_arg).items()
