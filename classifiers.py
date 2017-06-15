@@ -9,4 +9,5 @@ from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.ensemble import GradientBoostingClassifier
+from xgboost import XGBClassifier
 
