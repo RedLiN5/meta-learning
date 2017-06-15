@@ -55,8 +55,10 @@ class HyperparameterReader(object):
         algorithm_name = list(algorithm_params.keys())[0]
         if algorithm_name in classifier_dict.keys():
             algorithm = classifier_dict[algorithm_name]
-        if algorithm_name in regressor_dict.keys():
+        elif algorithm_name in regressor_dict.keys():
             algorithm = regressor_dict[algorithm_name]
+        else:
+            raise ValueError("Algorithm does not exist in metabase")
         hyperparameters = algorithm_params[algorithm_name]
         algorithm_util = algorithm().set_params(**hyperparameters)
         return algorithm_util
@@ -76,7 +78,8 @@ classifier_dict = {'logistic':logistic,
                    'AdaBoostClassifier':AdaBoostClassifier,
                    'GradientBoostingClassifier':GradientBoostingClassifier,
                    'LinearDiscriminantAnalysis':LinearDiscriminantAnalysis,
-                   'QuadraticDiscriminantAnalysis':QuadraticDiscriminantAnalysis
+                   'QuadraticDiscriminantAnalysis':QuadraticDiscriminantAnalysis,
+                   'XGBClassifier':XGBClassifier
                    }
 
 
@@ -87,4 +90,5 @@ regressor_dict = {'Ridge':Ridge,
                   'AdaBoostRegressor':AdaBoostRegressor,
                   'RandomForestRegressor':RandomForestRegressor,
                   'DecisionTreeRegressor':DecisionTreeRegressor,
+                  'XGBRegressor':XGBRegressor
                   }
