@@ -61,8 +61,6 @@ class DataMatch(object):
                            industry=industry,
                            business_func=business_func)
         self.features_info = fr.run()
-        self.industry = get_industry(industry)
-        self.business_func = get_business_func(business_func)
 
     def _load_metabase(self):
         with open('config/metabase', 'rb') as fp:
@@ -152,13 +150,10 @@ class DataMatch(object):
 
     def _calculate_scores(self):
         all_features = self._load_metabase()
-        filter_keys = []
-        for key in all_features.keys():
-            if all_features[key]['Industry'] == self.industry:
-                filter_keys.append(key)
+        keys = all_features.keys()
         ids = []
         scores = []
-        for key in filter_keys:
+        for key in keys:
             feature_dict = all_features[key]
             _, candidate_scores_numeric = self._scoring_numeric(features_base=feature_dict)
             _, candidate_scores_category = self._scoring_category(features_base=feature_dict)

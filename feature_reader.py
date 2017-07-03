@@ -9,7 +9,7 @@ from scipy import stats
 class FeatureReader(object):
 
     def __init__(self, X, y, id, numeric_names,
-                 category_names, industry, business_func):
+                 category_names):
         """
         Args:
             X: pandas.DataFrame
@@ -22,20 +22,13 @@ class FeatureReader(object):
                 Column names of numerical columns
             category_names: pandas.indexes.base.Index
                 Column names of categorical columns
-            industry: string
-                Industry of this data set
-            business_func: string
-                Business function of this project
         """
         self.X = X
         self.y = y
         self.id = id
         self.numeric_names = numeric_names
         self.category_names = category_names
-        industry = get_industry(industry=industry)
-        business_func = get_business_func(business_func)
-        self.features_info = dict(Industry=industry,
-                                  Business_Function=business_func)
+        self.features_info = {}
 
     def _extract_info(self):
         """
@@ -114,41 +107,3 @@ class FeatureReader(object):
 
 
 
-
-
-
-industries_dict = dict(banks='Banks', ecommerce='E-commerce', education='Education',
-                       entertainment='Entertainment', financial_service='Financial Services',
-                       retailer='General Retailers', health_care='Health Care', internet='Internet',
-                       life_insurance='Life Insurance', public_services='Public Services',
-                       software_computer='Software and Computer Services', telecom='Telecommunication')
-
-business_func_dict = dict(academics='Academics', customer_support='Customer Support',
-                          disease_diagnosis='Disease Diagnosis', disease_treatment='Disease Treatment',
-                          finance='Finance', human_resource='Human Resource', it='IT', investment='Investment',
-                          marketing='Marketing', quality_assurance='Quality Assurance', sales='Sales',
-                          risk_management='Risk Management')
-
-def get_industry(industry):
-    if isinstance(industry, str):
-        try:
-            industry_valid = industries_dict[industry.lower()]
-            return industry_valid
-        except KeyError:
-            industries = industries_dict.keys()
-            raise ValueError('{0} is not a valid industry value.'
-                             'Valid options are {1}'.format(industry, sorted(industries)))
-    else:
-        raise ValueError('{0} is not a string'.format(industry))
-
-def get_business_func(buz_func):
-    if isinstance(buz_func, str):
-        try:
-            business_func = business_func_dict[buz_func.lower()]
-            return business_func
-        except KeyError:
-            buz_funcs = business_func_dict.keys()
-            raise ValueError('{0} is not a valid industry value.'
-                             'Valid options are {1}'.format(buz_func, sorted(buz_funcs)))
-    else:
-        raise ValueError('{0} is not a string'.format(buz_func))
