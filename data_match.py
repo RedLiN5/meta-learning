@@ -57,9 +57,7 @@ class DataMatch(object):
                  category_names=None, industry=None, business_func=None):
         fr = FeatureReader(X=X, y=y, id=id,
                            numeric_names=numeric_names,
-                           category_names=category_names,
-                           industry=industry,
-                           business_func=business_func)
+                           category_names=category_names)
         self.features_info = fr.run()
 
     def _load_metabase(self):
