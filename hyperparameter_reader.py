@@ -68,7 +68,7 @@ class HyperparameterReader(object):
 
 
 
-classifier_dict = {'logistic':logistic,
+classifier_dict = {'logistic':LogisticRegression,
                    'SVC': SVC,
                    'KNeighborsClassifier':KNeighborsClassifier,
                    'GaussianNB':GaussianNB,
