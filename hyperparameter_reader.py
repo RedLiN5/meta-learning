@@ -51,17 +51,21 @@ class HyperparameterReader(object):
 
     def read_return(self, id=None):
         itemdict = self._load()
-        algorithm_params = itemdict[id]
-        algorithm_name = list(algorithm_params.keys())[0]
-        if algorithm_name in classifier_dict.keys():
-            algorithm = classifier_dict[algorithm_name]
-        elif algorithm_name in regressor_dict.keys():
-            algorithm = regressor_dict[algorithm_name]
-        else:
-            raise ValueError("Algorithm does not exist in metabase")
-        hyperparameters = algorithm_params[algorithm_name]
-        algorithm_util = algorithm().set_params(**hyperparameters)
-        return algorithm_util
+        try:
+            algorithm_params = itemdict[id]
+            algorithm_name = list(algorithm_params.keys())[0]
+            if algorithm_name in classifier_dict.keys():
+                algorithm = classifier_dict[algorithm_name]
+            elif algorithm_name in regressor_dict.keys():
+                algorithm = regressor_dict[algorithm_name]
+            else:
+                raise ValueError("Algorithm does not exist in metabase")
+            hyperparameters = algorithm_params[algorithm_name]
+            algorithm_util = algorithm().set_params(**hyperparameters)
+            return algorithm_util
+        except Exception as e:
+            print(ValueError('ID {0} does not have a corresponding algorithm'))
+
 
 
 
