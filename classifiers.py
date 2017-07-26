@@ -11,3 +11,16 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from xgboost import XGBClassifier
 
+classifier_dict = {'Logistic':LogisticRegression,
+                   'SVC': SVC,
+                   'KNeighborsClassifier':KNeighborsClassifier,
+                   'GaussianNB':GaussianNB,
+                   'BernoulliNB':BernoulliNB,
+                   'DecisionTreeClassifier':DecisionTreeClassifier,
+                   'RandomForestClassifier':RandomForestClassifier,
+                   'AdaBoostClassifier':AdaBoostClassifier,
+                   'GradientBoostingClassifier':GradientBoostingClassifier,
+                   'LinearDiscriminantAnalysis':LinearDiscriminantAnalysis,
+                   'QuadraticDiscriminantAnalysis':QuadraticDiscriminantAnalysis,
+                   'XGBClassifier':XGBClassifier
+                   }
