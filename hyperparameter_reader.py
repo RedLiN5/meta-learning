@@ -72,27 +72,5 @@ class HyperparameterReader(object):
 
 
 
-classifier_dict = {'logistic':LogisticRegression,
-                   'SVC': SVC,
-                   'KNeighborsClassifier':KNeighborsClassifier,
-                   'GaussianNB':GaussianNB,
-                   'BernoulliNB':BernoulliNB,
-                   'DecisionTreeClassifier':DecisionTreeClassifier,
-                   'RandomForestClassifier':RandomForestClassifier,
-                   'AdaBoostClassifier':AdaBoostClassifier,
-                   'GradientBoostingClassifier':GradientBoostingClassifier,
-                   'LinearDiscriminantAnalysis':LinearDiscriminantAnalysis,
-                   'QuadraticDiscriminantAnalysis':QuadraticDiscriminantAnalysis,
-                   'XGBClassifier':XGBClassifier
-                   }
 
 
-regressor_dict = {'Ridge':Ridge,
-                  'Lasso':Lasso,
-                  'KNeighborsRegressor':KNeighborsRegressor,
-                  'GradientBoostingRegressor':GradientBoostingRegressor,
-                  'AdaBoostRegressor':AdaBoostRegressor,
-                  'RandomForestRegressor':RandomForestRegressor,
-                  'DecisionTreeRegressor':DecisionTreeRegressor,
-                  'XGBRegressor':XGBRegressor
-                  }
