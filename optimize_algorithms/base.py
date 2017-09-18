@@ -4,11 +4,12 @@ import pandas as pd
 from scipy.stats import norm
 from sklearn.model_selection import train_test_split
 from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn import metrics
 
 #TODO 写一个 recorder 类, 将每个 model里前20的param_name, param, perfrom_score都记录下来. 最终可以用来排序, 做ensemble
 class abstract_optimizer():
 
-    def __init__(self, model, X, y, param_names, param_bounds, param_types):
+    def __init__(self, model, X, y, param_names, param_bounds, param_types, metric):
         if not len(param_types) == len(param_bounds) == len(param_names):
             raise("'param_types', 'param_bounds' and 'param_names' must have same length")
         else:
@@ -19,7 +20,7 @@ class abstract_optimizer():
         self.model = model
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y, test_size=0.3)
         self.X, self.y = X, y
-        # self.params = {}
+        self.metric = metric
 
 
     def get_init_param(self, param_type, upper_bound, lower_bound, n):
@@ -37,7 +38,6 @@ class abstract_optimizer():
         return init_param
 
 
-
     def get_performance(self, param_name, param_list, fix_params=None):
         if fix_params:
             pass
@@ -48,8 +48,15 @@ class abstract_optimizer():
             fix_params[param_name] = p
             self.model.set_params(**fix_params)
             self.model.fit(self.X_train, self.y_train)
-            score = self.model.score(self.X_test, self.y_test)
-            perform_scores.append(score)
+            if self.metric == 'accuracy':
+                score = self.model.score(self.X_test, self.y_test)
+            elif self.metric == 'auc':
+                pred_prob = self.model.predict_proba(self.X_test)[:, 1]
+                fpr, tpr, thresholds = metrics.roc_curve(self.y_test, pred_prob)
+                score = metrics.auc(fpr, tpr)
+            else:
+                raise ValueError("Value 'metric' is not specified")
+            perform_scores.append(round(score, 4))
         return param_list, perform_scores
 
 
@@ -58,7 +65,6 @@ class abstract_optimizer():
         f = (mean - best) * norm.cdf(z) + std * norm.pdf(z)
         f[std == 0.0] = 0.0
         return f
-
 
     def get_param(self, x, y):
         g = GaussianProcessRegressor()
@@ -80,8 +86,15 @@ class abstract_optimizer():
             fix_params[param_name] = param
             self.model.set_params(**fix_params)
             self.model.fit(self.X_train, self.y_train)
-            score = self.model.score(self.X_test, self.y_test)
-            perform_scores.append(score)
+            if self.metric == 'accuracy':
+                score = self.model.score(self.X_test, self.y_test)
+            elif self.metric == 'auc':
+                pred_prob = self.model.predict_proba(self.X_test)[:,1]
+                fpr, tpr, thresholds = metrics.roc_curve(self.y_test, pred_prob)
+                score = metrics.auc(fpr, tpr)
+            else:
+                raise ValueError("Value 'metric' is not specified")
+            perform_scores.append(round(score, 4))
         opt_param = param_list[np.argmax(perform_scores)]
         return opt_param
 
@@ -135,7 +148,7 @@ class abstract_optimizer():
             candidate, best = self.get_param(x, y)
             count = 0
             converge = Converge()
-            while count < max_iter:
+            while count <= max_iter:
                 new_upper = candidate * 1.2
                 new_lower = candidate * 0.8
                 try:
