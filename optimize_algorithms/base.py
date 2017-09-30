@@ -5,6 +5,8 @@ from scipy.stats import norm
 from sklearn.model_selection import train_test_split
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn import metrics
+import concurrent.futures
+from functools import partial
 
 #TODO 写一个 recorder 类, 将每个 model里前20的param_name, param, perfrom_score都记录下来. 最终可以用来排序, 做ensemble
 class abstract_optimizer():
@@ -18,7 +20,7 @@ class abstract_optimizer():
             self.param_names = param_names
 
         self.model = model
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y, test_size=0.3)
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y, test_size=0.2)
         self.X, self.y = X, y
         self.metric = metric
 
@@ -37,6 +39,19 @@ class abstract_optimizer():
         init_param = np.unique(init_param)
         return init_param
 
+    def _performance_score(self, fix_params, param_name, p):
+        fix_params[param_name] = p
+        self.model.set_params(**fix_params)
+        self.model.fit(self.X_train, self.y_train)
+        if self.metric == 'accuracy':
+            score = self.model.score(self.X_test, self.y_test)
+        elif self.metric == 'auc':
+            pred_prob = self.model.predict_proba(self.X_test)[:, 1]
+            fpr, tpr, thresholds = metrics.roc_curve(self.y_test, pred_prob)
+            score = metrics.auc(fpr, tpr)
+        else:
+            raise ValueError("Value 'metric' is not specified")
+        return score
 
     def get_performance(self, param_name, param_list, fix_params=None):
         if fix_params:
@@ -44,21 +59,12 @@ class abstract_optimizer():
         else:
             fix_params = {}
         perform_scores = []
-        for p in param_list:
-            fix_params[param_name] = p
-            self.model.set_params(**fix_params)
-            self.model.fit(self.X_train, self.y_train)
-            if self.metric == 'accuracy':
-                score = self.model.score(self.X_test, self.y_test)
-            elif self.metric == 'auc':
-                pred_prob = self.model.predict_proba(self.X_test)[:, 1]
-                fpr, tpr, thresholds = metrics.roc_curve(self.y_test, pred_prob)
-                score = metrics.auc(fpr, tpr)
-            else:
-                raise ValueError("Value 'metric' is not specified")
-            perform_scores.append(round(score, 4))
+        print('param_list', param_name, param_list)
+        f = partial(self._performance_score, fix_params, param_name)
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            for param_value, score in zip(param_list, executor.map(f, param_list)):
+                perform_scores.append(round(score, 4))
         return param_list, perform_scores
-
 
     def acquisition(self, mean, std, best):
         z = (mean - best) / std
@@ -82,6 +88,7 @@ class abstract_optimizer():
             pass
         else:
             fix_params = {}
+        print('str param list', param_name, param_list)
         for param in param_list:
             fix_params[param_name] = param
             self.model.set_params(**fix_params)
@@ -155,7 +162,7 @@ class abstract_optimizer():
                     new_param = self.get_init_param(param_type=param_type,
                                                     lower_bound=new_lower,
                                                     upper_bound=new_upper,
-                                                    n=50)
+                                                    n=30)
                     x, y = self.get_performance(param_name=param_name,
                                                 param_list=new_param)
                     candidate, best = self.get_param(x, y)
@@ -183,7 +190,7 @@ class Converge():
         self.ei.append(ei)
 
     def check(self):
-        if len(self.ei) > 5:
+        if len(self.ei) >= 5:
             times = 0
             for i in [4,3,2,1]:
                 minuend = self.ei[-(i+1)]
@@ -191,7 +198,7 @@ class Converge():
                 rate = abs(subtrahend-minuend)/minuend
                 if rate <= 0.02:
                     times += 1
-            if times == 4:
+            if times >= 3:
                 return True
             else:
                 return False
