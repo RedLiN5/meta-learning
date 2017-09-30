@@ -29,9 +29,9 @@ class Optimizer():
                 * 'LinearDiscriminantAnalysis':LinearDiscriminantAnalysis,
                 * 'QuadraticDiscriminantAnalysis':QuadraticDiscriminantAnalysis,
                 * 'XGBClassifier':XGBClassifier
-            X: numpy.array or pandas.DataFrame
+            X: numpy array or pandas DataFrame
                 predictors
-            y: numpy.array or pandas.Series
+            y: numpy array or pandas Series
                 target
             max_iter: int
                 maximum iteration times
