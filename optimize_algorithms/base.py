@@ -59,7 +59,6 @@ class abstract_optimizer():
         else:
             fix_params = {}
         perform_scores = []
-        print('param_list', param_name, param_list)
         f = partial(self._performance_score, fix_params, param_name)
         with concurrent.futures.ProcessPoolExecutor() as executor:
             for param_value, score in zip(param_list, executor.map(f, param_list)):
@@ -78,7 +77,7 @@ class abstract_optimizer():
         g.fit(x, y)
         mean, std = g.predict(x, return_std=True)
         ei = self.acquisition(mean=mean, std=std, best=0)
-        candidate = x[np.argmax(ei)]
+        candidate = x[np.argmax(ei)][0]
         best = np.max(ei)
         return candidate, best
 
@@ -88,7 +87,6 @@ class abstract_optimizer():
             pass
         else:
             fix_params = {}
-        print('str param list', param_name, param_list)
         for param in param_list:
             fix_params[param_name] = param
             self.model.set_params(**fix_params)
@@ -115,14 +113,11 @@ class abstract_optimizer():
                     param_name = self.param_names[i]
                     param_bound = self.param_bounds[i]
                     self.param_bound = self.param_bounds[i]
-                    print('type:',param_type)
-                    print('name:',param_name)
                     best_param, best_ei = self.get_opt_param(param_type=param_type,
                                                              param_name=param_name,
                                                              param_bound=param_bound,
                                                              max_iter=max_iter)
-                    params[param_name] = best_param[0]
-                    print(params)
+                    params[param_name] = best_param
                 elif param_type == 'str':
                     param_name = self.param_names[i]
                     param_list = self.param_bounds[i]
@@ -130,7 +125,6 @@ class abstract_optimizer():
                                                    param_list=param_list,
                                                    fix_params=params)
                     params[param_name] = opt_param
-                    print(params)
             return params
         elif len(self.param_types) == 0:
             return params
@@ -145,7 +139,7 @@ class abstract_optimizer():
         else:
             upper_bound = param_bound[1]
             lower_bound = param_bound[0]
-            print('Initial parameters')
+            print('Initial parameters for {0}.'.format(param_name))
             init_param = self.get_init_param(param_type=param_type,
                                              upper_bound=upper_bound,
                                              lower_bound=lower_bound,
@@ -153,29 +147,33 @@ class abstract_optimizer():
             x, y = self.get_performance(param_name=param_name,
                                         param_list=init_param)
             candidate, best = self.get_param(x, y)
-            count = 0
-            converge = Converge()
-            while count <= max_iter:
-                new_upper = candidate * 1.2
-                new_lower = candidate * 0.8
-                try:
-                    new_param = self.get_init_param(param_type=param_type,
-                                                    lower_bound=new_lower,
-                                                    upper_bound=new_upper,
-                                                    n=30)
-                    x, y = self.get_performance(param_name=param_name,
-                                                param_list=new_param)
-                    candidate, best = self.get_param(x, y)
-                    converge.add(param=candidate,
-                                 ei=best)
-                    if converge.check():
-                        print('Converge!')
+            if len(x) < 30:
+                best_param = candidate
+                best_ei = best
+            else:
+                count = 0
+                converge = Converge()
+                while count <= max_iter:
+                    new_upper = candidate * 1.2
+                    new_lower = candidate * 0.8
+                    try:
+                        new_param = self.get_init_param(param_type=param_type,
+                                                        lower_bound=new_lower,
+                                                        upper_bound=new_upper,
+                                                        n=30)
+                        x, y = self.get_performance(param_name=param_name,
+                                                    param_list=new_param)
+                        candidate, best = self.get_param(x, y)
+                        converge.add(param=candidate,
+                                     ei=best)
+                        if converge.check():
+                            print('Converge!')
+                            break
+                    except Exception as e:
+                        print('Error:', e)
                         break
-                except Exception as e:
-                    print(e)
-                    break
-            best_param = candidate
-            best_ei = best
+                best_param = candidate
+                best_ei = best
             return best_param, best_ei
 
 
