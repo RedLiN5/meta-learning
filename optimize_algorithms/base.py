@@ -11,7 +11,7 @@ from functools import partial
 #TODO 写一个 recorder 类, 将每个 model里前20的param_name, param, perfrom_score都记录下来. 最终可以用来排序, 做ensemble
 class abstract_optimizer():
 
-    def __init__(self, model, X, y, param_names, param_bounds, param_types, metric):
+    def __init__(self, model, X, y, param_names, param_bounds, param_types, metric, random_state):
         if not len(param_types) == len(param_bounds) == len(param_names):
             raise("'param_types', 'param_bounds' and 'param_names' must have same length")
         else:
@@ -20,7 +20,10 @@ class abstract_optimizer():
             self.param_names = param_names
 
         self.model = model
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y, test_size=0.2)
+        self.seed = random_state
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y,
+                                                                                test_size=0.2,
+                                                                                random_state=self.seed)
         self.X, self.y = X, y
         self.metric = metric
 
@@ -30,6 +33,7 @@ class abstract_optimizer():
             upper_bound = self.param_bound[1]
         if lower_bound < self.param_bound[0]:
             lower_bound = self.param_bound[0]
+        np.random.seed(self.seed)
         if param_type == 'float':
             init_param = np.random.uniform(lower_bound, upper_bound, n)
         elif param_type == 'int':
@@ -42,6 +46,7 @@ class abstract_optimizer():
     def _performance_score(self, fix_params, param_name, p):
         fix_params[param_name] = p
         self.model.set_params(**fix_params)
+        self.model.set_params(**{'random_state': self.seed})
         self.model.fit(self.X_train, self.y_train)
         if self.metric == 'accuracy':
             score = self.model.score(self.X_test, self.y_test)
@@ -73,6 +78,7 @@ class abstract_optimizer():
 
     def get_param(self, x, y):
         g = GaussianProcessRegressor()
+        g.set_params(**{'random_state': self.seed})
         x = np.array(x).reshape(-1,1)
         g.fit(x, y)
         mean, std = g.predict(x, return_std=True)
@@ -90,6 +96,7 @@ class abstract_optimizer():
         for param in param_list:
             fix_params[param_name] = param
             self.model.set_params(**fix_params)
+            self.model.set_params(**{'random_state': self.seed})
             self.model.fit(self.X_train, self.y_train)
             if self.metric == 'accuracy':
                 score = self.model.score(self.X_test, self.y_test)
